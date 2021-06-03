@@ -1,3 +1,4 @@
+import pytest
 from pyrurl.pyrurl import parse_url
 
 from pyrurl import __version__
@@ -7,10 +8,13 @@ def test_version():
     assert __version__ == '0.1.0'
 
 
-def test_sum():
+@pytest.mark.parametrize("url", [
+    ("http://google.fr"),
+    ('http://www.cwi.nl/%7Eguido/Python.html'),
+])
+def test_sum(url):
     from urllib.parse import urlparse
-    google = 'http://google.fr'
-    a = parse_url(google)
-    b = urlparse(google)
-    print(a)
+    a = parse_url(url)
+    b = urlparse(url)
+    print(a.__repr__())
     print(b)

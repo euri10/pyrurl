@@ -1,11 +1,11 @@
-use pyo3::exceptions::{PyTypeError};
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::wrap_pyfunction;
+use pyo3::{wrap_pyfunction, PyObjectProtocol};
 use pyo3::{PyErr, Python};
 use url::Url;
 
 #[pyclass]
-struct MyStruct {
+struct PyrUrl {
     #[pyo3(get)]
     scheme: String,
     #[pyo3(get)]
@@ -19,12 +19,23 @@ struct MyStruct {
     #[pyo3(get)]
     fragment: String,
 }
+
+#[pyproto]
+impl PyObjectProtocol for PyrUrl {
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!(
+            "PyUrl(scheme: '{}', netloc: '{}', path: '{}', params: '{}', query: '{}', fragment: '{}')",
+            self.scheme, self.netloc, self.path, self.params, self.query, self.fragment
+        ))
+    }
+}
+
 #[pyfunction]
-fn parse_url(input_url: &str) -> PyResult<MyStruct> {
+fn parse_url(input_url: &str) -> PyResult<PyrUrl> {
     let parsed = Url::parse(input_url);
     match parsed {
         Ok(url) => {
-            Ok(MyStruct {
+            Ok(PyrUrl {
                 scheme: url.scheme().to_string(),
                 netloc: url.domain().unwrap_or("").to_string(),
                 path: url.path().to_string(),
@@ -49,7 +60,6 @@ fn parse_url(input_url: &str) -> PyResult<MyStruct> {
 #[pymodule]
 fn pyrurl(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_url, m)?)?;
-
     Ok(())
 }
 
