@@ -10,6 +10,9 @@ python = "^3.9"
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 maturin = "^0.10.6"
+yarl = "^1.6.3"
+whatwg-url = "^2018.8.26"
+httptools = "^0.2.0"
 
 [build-system]
 requires = ["maturin>=0.10,<0.11"]

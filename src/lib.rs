@@ -1,8 +1,8 @@
-use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::{wrap_pyfunction, PyObjectProtocol};
-use pyo3::{PyErr, Python};
 use url::Url;
+use pyo3::exceptions::PyTypeError;
+
 
 struct PyNetloc<'a> {
     username: &'a str,
@@ -89,17 +89,10 @@ fn parse_url(input_url: &str) -> PyResult<PyrUrl> {
                 // hostname: url.host_str().to_string(),
                 port: url.port().unwrap_or(0)
             })
-
-            // Ok(String::from(url.as_str()))
         }
         Err(e) => {
             let error_message = format!("Error parsing! {}", e.to_string());
-            let gil = Python::acquire_gil();
-            let py = gil.python();
-            PyTypeError::new_err("Error").restore(py);
-            assert!(PyErr::occurred(py));
-            drop(PyErr::fetch(py));
-            return Err(PyErr::fetch(py));
+            return Err(PyTypeError::new_err(error_message));
         }
     }
 }
@@ -110,16 +103,6 @@ fn pyrurl(_py: Python, m: &PyModule) -> PyResult<()> {
     Ok(())
 }
 
-// impl std::convert::From<ParseError> for PyErr {
-//     fn from(err: ParseError) -> Self {
-//         PyOSError::new_err(err.to_string())
-//     }
-// }
-//
-// #[pyfunction]
-// fn parse_url2(input_url: &str) -> Result<String, PyErr> {
-//     Ok(Url::parse(input_url)?.to_string())
-// }
 
 #[cfg(test)]
 mod tests {
@@ -128,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_url() {
-        let input = "http://NetLoc:80/path;parameters/path2;parameters2?query=argument#fragment";
+        let input = "http://www.cwi.nl/%7Eguido/Python.html";
         let url = Url::parse(input).unwrap();
         let p = PyNetloc {
                     domain: url.domain().unwrap_or("").to_string(),
