@@ -49,7 +49,7 @@ class TestPythonUrlLibraries:
         assert pyrurl_result.fragment == whatwg_url_result.fragment
 
 
-NOT_A_VALID_URL = ""
+NOT_A_VALID_URL = "htt"
 
 
 def test_exception():

@@ -1,8 +1,5 @@
-use pyo3::prelude::*;
-use pyo3::{wrap_pyfunction, PyObjectProtocol};
+use pyo3::{exceptions::PyTypeError, prelude::*, wrap_pyfunction, PyObjectProtocol};
 use url::Url;
-use pyo3::exceptions::PyTypeError;
-
 
 struct PyNetloc<'a> {
     username: &'a str,
@@ -11,14 +8,11 @@ struct PyNetloc<'a> {
     port_or_default: Option<u16>,
 }
 
-
 impl PyNetloc<'_> {
     fn to_py_str(&self) -> String {
         let mut user_pass = "".to_string();
         match self.username == "" && self.password != None {
-            true => {
-                user_pass = format!("{}:{}", self.username, self.password.unwrap())
-                }
+            true => user_pass = format!("{}:{}", self.username, self.password.unwrap()),
             false => {}
         }
 
@@ -49,10 +43,10 @@ struct PyrUrl {
     fragment: String,
     #[pyo3(get)]
     username: String,
-    // #[pyo3(get)]
-    // password: String,
-    // #[pyo3(get)]
-    // hostname: String,
+    #[pyo3(get)]
+    password: String,
+    #[pyo3(get)]
+    hostname: String,
     #[pyo3(get)]
     port: u16,
 }
@@ -78,19 +72,32 @@ fn parse_url(input_url: &str) -> PyResult<PyrUrl> {
                     domain: url.domain().unwrap_or("").to_string(),
                     username: url.username(),
                     password: url.password(),
-                    port_or_default: url.port_or_known_default()
-                }.to_py_str(),
+                    port_or_default: url.port_or_known_default(),
+                }
+                .to_py_str(),
                 path: url.path().to_string(),
                 params: "".to_string(),
                 query: url.query().unwrap_or("").to_string(),
                 fragment: url.fragment().unwrap_or("").to_string(),
                 username: url.username().to_string(),
-                // password: url.password().to_string(),
-                // hostname: url.host_str().to_string(),
-                port: url.port().unwrap_or(0)
+                password: url.password().unwrap_or("").to_string(),
+                hostname: url.host_str().unwrap_or("").to_string(),
+                port: url.port().unwrap_or(0),
             })
         }
         Err(e) => {
+            match e {
+                EmptyHost => {}
+                IdnaError => {}
+                InvalidPort => {}
+                InvalidIpv4Address => {}
+                InvalidIpv6Address => {}
+                InvalidDomainCharacter => {}
+                RelativeUrlWithoutBase => {}
+                RelativeUrlWithCannotBeABaseBase => {}
+                SetHostOnCannotBeABaseUrl => {}
+                Overflow => {}
+            }
             let error_message = format!("Error parsing! {}", e.to_string());
             return Err(PyTypeError::new_err(error_message));
         }
@@ -103,21 +110,16 @@ fn pyrurl(_py: Python, m: &PyModule) -> PyResult<()> {
     Ok(())
 }
 
-
 #[cfg(test)]
 mod tests {
+    use crate::{parse_url, PyNetloc};
     use url::Url;
-    use crate::PyNetloc;
 
     #[test]
-    fn test_url() {
-        let input = "http://www.cwi.nl/%7Eguido/Python.html";
-        let url = Url::parse(input).unwrap();
-        let p = PyNetloc {
-                    domain: url.domain().unwrap_or("").to_string(),
-                    username: url.username(),
-                    password: url.password(),
-                    port_or_default: url.port_or_known_default()
-                }.to_py_str();
+    fn test_parse_url() {
+        let input =
+            "http://user:pass@NetLoc:80/path;parameters/path2;parameters2?query=argument#fragment";
+        let parsed_url = parse_url(input).unwrap();
+        assert_eq!(parsed_url.scheme, "http")
     }
 }
