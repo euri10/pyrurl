@@ -6,7 +6,7 @@ from httptools import parse_url
 
 GOOGLE = "https://www.google.com"
 GOOGLEB = GOOGLE.encode()
-TIMES = 1000000
+TIMES = 10000
 
 
 def yarl_def():
@@ -27,16 +27,16 @@ def pyrulr_def():
 
 def bench():
     yarl_timer = Timer(yarl_def).timeit(TIMES)
-    print(yarl_timer)
+    print(f"yarl: {yarl_timer}")
 
     # whatwg_timer = Timer(whatwg_def).timeit(TIMES)
     # print(whatwg_timer)
 
     httptools_timer = Timer(httptools_def).timeit(TIMES)
-    print(httptools_timer)
+    print(f"httptools: {httptools_timer}")
 
     pyrurl_timer = Timer(pyrulr_def).timeit(TIMES)
-    print(pyrurl_timer)
+    print(f"pyrurl: {pyrurl_timer}")
 
 
 if __name__ == '__main__':
